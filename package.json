@@ -1,5 +1,5 @@
 {
-  "name": "@bucaa/versioned-footer",
+  "name": "@bucaastudio/versioned-footer",
   "version": "1.0.0",
   "description": "Auto-versioning footer component for React/Next.js with format vYY.MM.N",
   "main": "dist/index.js",

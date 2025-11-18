@@ -1,4 +1,4 @@
-# @bucaa/versioned-footer
+# @bucaastudio/versioned-footer
 
 Auto-versioning footer component for React/Next.js with automatic version incrementing on git commits.
 
@@ -23,7 +23,7 @@ npm install github:bluevisor/versioned-footer
 ### Option 2: From npm (when published)
 
 ```bash
-npm install @bucaa/versioned-footer
+npm install @bucaastudio/versioned-footer
 ```
 
 ## Quick Start
@@ -48,7 +48,7 @@ This will:
 ### 3. Use the component
 
 ```tsx
-import { VersionedFooter } from "@bucaa/versioned-footer";
+import { VersionedFooter } from "@bucaastudio/versioned-footer";
 
 export default function MyPage() {
   return (
