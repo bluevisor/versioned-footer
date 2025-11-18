@@ -1,0 +1,14 @@
+{
+  "format": "YY.MM.N",
+  "description": "Version format template. Supported placeholders: YYYY (full year), YY (2-digit year), MM (month), N (patch number)",
+  "examples": {
+    "YY.MM.N": "25.11.1 (2-digit year, month, patch)",
+    "YYYY.MM.N": "2025.11.1 (full year, month, patch)",
+    "MM.YY.N": "11.25.1 (month, 2-digit year, patch)",
+    "MM.YYYY.N": "11.2025.1 (month, full year, patch)",
+    "N": "1 (patch only)",
+    "YY.N": "25.1 (year, patch)",
+    "MM.N": "11.1 (month, patch)",
+    "YYYY.N": "2025.1 (full year, patch)"
+  }
+}

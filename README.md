@@ -4,7 +4,8 @@ Auto-versioning footer component for React/Next.js with automatic version increm
 
 ## Features
 
-- 🔄 Auto-increments version on every commit (format: vYY.MM.N)
+- 🔄 Auto-increments version on every commit
+- 🎨 **Customizable version format** (YY.MM.N, YYYY.MM.N, MM.YY.N, N, etc.)
 - ⚛️ React/Next.js compatible
 - 🌙 Dark mode support
 - 📅 Automatic year range calculation
@@ -107,6 +108,69 @@ The version format is `vYY.MM.N`:
 - First commit in November 2025: `v25.11.1`
 - Next commit same month: `v25.11.2`
 - First commit in December 2025: `v25.12.1`
+
+### Customizing Version Format
+
+You can customize the version format by editing `version-config.json` in your project root:
+
+```json
+{
+  "format": "YYYY.MM.N"
+}
+```
+
+**Supported Placeholders:**
+- `YYYY` - Full year (e.g., 2025)
+- `YY` - 2-digit year (e.g., 25)
+- `MM` - Month (1-12)
+- `N` - Patch number (auto-increments)
+
+**Available Formats:**
+
+| Format | Example | Description |
+|--------|---------|-------------|
+| `YY.MM.N` | `25.11.1` | Default: 2-digit year, month, patch |
+| `YYYY.MM.N` | `2025.11.1` | Full year, month, patch |
+| `MM.YY.N` | `11.25.1` | Month first, 2-digit year, patch |
+| `MM.YYYY.N` | `11.2025.1` | Month first, full year, patch |
+| `N` | `1` | Patch only (simple counter) |
+| `YY.N` | `25.1` | Year and patch only |
+| `MM.N` | `11.1` | Month and patch only |
+| `YYYY.N` | `2025.1` | Full year and patch only |
+
+**Reset Behavior:**
+- Formats with **year + month**: Resets patch to 1 when either changes
+- Formats with **year only**: Resets patch to 1 on new year
+- Formats with **month only**: Resets patch to 1 on new month
+- Formats with **patch only** (`N`): Never resets, always increments
+
+**Examples:**
+
+```json
+// Semantic-like versioning with full year
+{
+  "format": "YYYY.MM.N"
+}
+// → 2025.11.1, 2025.11.2, 2025.12.1
+
+// Month-first format
+{
+  "format": "MM.YYYY.N"
+}
+// → 11.2025.1, 11.2025.2, 12.2025.1
+
+// Simple incrementing counter
+{
+  "format": "N"
+}
+// → 1, 2, 3, 4, ...
+
+// Year-based versioning
+{
+  "format": "YYYY.N"
+}
+// → 2025.1, 2025.2, 2026.1
+```
 
 ### Manual Version Bump
 
