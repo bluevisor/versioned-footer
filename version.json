@@ -1,3 +1,5 @@
 {
-  "version": "25.11.1"
+  "version": "25.11.1",
+  "majorVersion": 1,
+  "minorVersion": 0
 }

@@ -122,26 +122,40 @@ You can customize the version format by editing `version-config.json` in your pr
 **Supported Placeholders:**
 - `YYYY` - Full year (e.g., 2025)
 - `YY` - 2-digit year (e.g., 25)
-- `MM` - Month (1-12)
+- `MM` - Month with a leading zero (`01-12`)
+- `M` - Month without a leading zero (`1-12`)
+- `DD` - Day of month with a leading zero (`01-31`)
+- `D` - Day of month without a leading zero (`1-31`)
 - `N` - Patch number (auto-increments)
+- `MAJORVERSION` / `MINORVERSION` - Custom semantic versions stored in `version.json`
+
+Update `majorVersion` / `minorVersion` inside `version.json` whenever you want to bump those values:
+
+```json
+{
+  "version": "25.11.1",
+  "majorVersion": 2,
+  "minorVersion": 1
+}
+```
 
 **Available Formats:**
 
 | Format | Example | Description |
 |--------|---------|-------------|
-| `YY.MM.N` | `25.11.1` | Default: 2-digit year, month, patch |
-| `YYYY.MM.N` | `2025.11.1` | Full year, month, patch |
-| `MM.YY.N` | `11.25.1` | Month first, 2-digit year, patch |
-| `MM.YYYY.N` | `11.2025.1` | Month first, full year, patch |
+| `YY.MM.N` | `25.11.1` | Default: 2-digit year, zero-padded month, patch |
+| `YY.M.N` | `25.11.1` | Month without leading zero |
+| `YYYY.MM.DD.N` | `2025.11.05.1` | Full year with zero-padded month/day |
+| `MM.YY.N` | `11.25.1` | Month first, 2-digit year |
 | `N` | `1` | Patch only (simple counter) |
-| `YY.N` | `25.1` | Year and patch only |
-| `MM.N` | `11.1` | Month and patch only |
+| `MAJORVERSION.MINORVERSION.YY.MM.N` | `1.0.25.11.1` | Combine semantic + date |
 | `YYYY.N` | `2025.1` | Full year and patch only |
 
 **Reset Behavior:**
-- Formats with **year + month**: Resets patch to 1 when either changes
+- Formats with **year + month/day**: Resets patch to 1 when any referenced date part changes
 - Formats with **year only**: Resets patch to 1 on new year
 - Formats with **month only**: Resets patch to 1 on new month
+- Formats with **day only**: Resets patch to 1 every day
 - Formats with **patch only** (`N`): Never resets, always increments
 
 **Examples:**
@@ -153,23 +167,23 @@ You can customize the version format by editing `version-config.json` in your pr
 }
 // → 2025.11.1, 2025.11.2, 2025.12.1
 
-// Month-first format
+// Month without a leading zero
 {
-  "format": "MM.YYYY.N"
+  "format": "YY.M.N"
 }
-// → 11.2025.1, 11.2025.2, 12.2025.1
+// → 25.11.1, 25.12.1
 
-// Simple incrementing counter
+// Daily build numbers
 {
-  "format": "N"
+  "format": "YYYY.MM.DD.N"
 }
-// → 1, 2, 3, 4, ...
+// → 2025.11.05.1, 2025.11.05.2, 2025.11.06.1
 
-// Year-based versioning
+// Prefix with manual semantic version
 {
-  "format": "YYYY.N"
+  "format": "MAJORVERSION.MINORVERSION.YY.MM.N"
 }
-// → 2025.1, 2025.2, 2026.1
+// → 1.0.25.11.1, 1.0.25.11.2
 ```
 
 ### Manual Version Bump

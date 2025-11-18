@@ -17,27 +17,58 @@ if (fs.existsSync(configFilePath)) {
   format = configData.format || 'YY.MM.N';
 }
 
+// Ensure semantic fields exist for custom placeholders
+const majorVersion = Number.isInteger(versionData.majorVersion)
+  ? versionData.majorVersion
+  : 1;
+const minorVersion = Number.isInteger(versionData.minorVersion)
+  ? versionData.minorVersion
+  : 0;
+
 // Get current date values
 const now = new Date();
 const fullYear = now.getFullYear();
 const twoDigitYear = fullYear.toString().slice(-2);
-const month = (now.getMonth() + 1).toString();
+const monthNumber = now.getMonth() + 1;
+const monthPlain = monthNumber.toString();
+const monthPadded = monthPlain.padStart(2, '0');
+const dayNumber = now.getDate();
+const dayPlain = dayNumber.toString();
+const dayPadded = dayPlain.padStart(2, '0');
 
-// Parse format to understand structure
-const hasFullYear = format.includes('YYYY');
-const hasTwoDigitYear = format.includes('YY') && !hasFullYear;
-const hasMonth = format.includes('MM');
-const hasPatch = format.includes('N');
+const formatTokens = format.match(/MAJORVERSION|MINORVERSION|YYYY|YY|MM|M|DD|D|N/g) || [];
+const hasFullYear = formatTokens.includes('YYYY');
+const hasTwoDigitYear = !hasFullYear && formatTokens.includes('YY');
+const hasMonth = formatTokens.some(token => token === 'MM' || token === 'M');
+const hasDay = formatTokens.some(token => token === 'DD' || token === 'D');
+const hasPatch = formatTokens.includes('N');
 
 // Extract values from current version based on format
 function parseVersion(version, format) {
   // Create regex pattern from format
-  let pattern = format
-    .replace(/\./g, '\\.')
-    .replace('YYYY', '(\\d{4})')
-    .replace('YY', '(\\d{1,2})')
-    .replace('MM', '(\\d{1,2})')
-    .replace('N', '(\\d+)');
+  const escapeRegex = str => str.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const pattern = escapeRegex(format).replace(
+    /MAJORVERSION|MINORVERSION|YYYY|YY|MM|M|DD|D|N/g,
+    token => {
+      switch (token) {
+        case 'MAJORVERSION':
+        case 'MINORVERSION':
+        case 'N':
+          return '(\\d+)';
+        case 'YYYY':
+          return '(\\d{4})';
+        case 'YY':
+          return '(\\d{1,2})';
+        case 'MM':
+        case 'M':
+        case 'DD':
+        case 'D':
+          return '(\\d{1,2})';
+        default:
+          return token;
+      }
+    }
+  );
 
   const regex = new RegExp(`^${pattern}$`);
   const match = version.match(regex);
@@ -50,14 +81,35 @@ function parseVersion(version, format) {
   let groupIndex = 1;
 
   // Extract values in order they appear in format
-  const formatParts = format.match(/YYYY|YY|MM|N/g) || [];
+  const formatParts = format.match(/MAJORVERSION|MINORVERSION|YYYY|YY|MM|M|DD|D|N/g) || [];
   formatParts.forEach(part => {
-    if (part === 'YYYY' || part === 'YY') {
-      result.year = match[groupIndex++];
-    } else if (part === 'MM') {
-      result.month = match[groupIndex++];
-    } else if (part === 'N') {
-      result.patch = match[groupIndex++];
+    const value = match[groupIndex++];
+    switch (part) {
+      case 'YYYY':
+        result.fullYear = value;
+        break;
+      case 'YY':
+        result.twoDigitYear = value;
+        break;
+      case 'MM':
+      case 'M':
+        result.month = parseInt(value, 10);
+        break;
+      case 'DD':
+      case 'D':
+        result.day = parseInt(value, 10);
+        break;
+      case 'N':
+        result.patch = parseInt(value, 10);
+        break;
+      case 'MAJORVERSION':
+        result.majorVersion = parseInt(value, 10);
+        break;
+      case 'MINORVERSION':
+        result.minorVersion = parseInt(value, 10);
+        break;
+      default:
+        break;
     }
   });
 
@@ -65,12 +117,31 @@ function parseVersion(version, format) {
 }
 
 // Generate new version based on format
-function generateVersion(format, year, month, patch) {
-  return format
-    .replace('YYYY', year)
-    .replace('YY', year)
-    .replace('MM', month)
-    .replace('N', patch);
+function generateVersion(format, values) {
+  return format.replace(/MAJORVERSION|MINORVERSION|YYYY|YY|MM|M|DD|D|N/g, token => {
+    switch (token) {
+      case 'YYYY':
+        return values.fullYear;
+      case 'YY':
+        return values.twoDigitYear;
+      case 'MM':
+        return values.monthPadded;
+      case 'M':
+        return values.month;
+      case 'DD':
+        return values.dayPadded;
+      case 'D':
+        return values.day;
+      case 'N':
+        return values.patch;
+      case 'MAJORVERSION':
+        return values.majorVersion;
+      case 'MINORVERSION':
+        return values.minorVersion;
+      default:
+        return token;
+    }
+  });
 }
 
 // Parse current version
@@ -84,21 +155,18 @@ if (!parsed) {
 // Determine if we should reset or increment
 let shouldReset = false;
 
-if (hasFullYear && hasMonth) {
-  // Check if year AND month changed
-  shouldReset = parsed.year !== fullYear.toString() || parsed.month !== month;
-} else if (hasFullYear) {
-  // Check if year changed
-  shouldReset = parsed.year !== fullYear.toString();
-} else if (hasTwoDigitYear && hasMonth) {
-  // Check if year AND month changed
-  shouldReset = parsed.year !== twoDigitYear || parsed.month !== month;
+if (hasFullYear) {
+  shouldReset = parsed.fullYear !== fullYear.toString();
 } else if (hasTwoDigitYear) {
-  // Check if year changed
-  shouldReset = parsed.year !== twoDigitYear;
-} else if (hasMonth) {
-  // Check if month changed
-  shouldReset = parsed.month !== month;
+  shouldReset = parsed.twoDigitYear !== twoDigitYear;
+}
+
+if (!shouldReset && hasMonth) {
+  shouldReset = parsed.month !== monthNumber;
+}
+
+if (!shouldReset && hasDay) {
+  shouldReset = parsed.day !== dayNumber;
 }
 
 // Calculate new patch number
@@ -107,16 +175,28 @@ if (hasPatch) {
   if (shouldReset) {
     newPatch = '1';
   } else {
-    newPatch = (parseInt(parsed.patch || '0', 10) + 1).toString();
+    const previousPatch = Number.isInteger(parsed.patch) ? parsed.patch : 0;
+    newPatch = (previousPatch + 1).toString();
   }
 }
 
 // Generate new version
-const newYear = hasFullYear ? fullYear.toString() : twoDigitYear;
-const newVersion = generateVersion(format, newYear, month, newPatch);
+const newVersion = generateVersion(format, {
+  fullYear: fullYear.toString(),
+  twoDigitYear,
+  month: monthPlain,
+  monthPadded,
+  day: dayPlain,
+  dayPadded,
+  patch: newPatch,
+  majorVersion: majorVersion.toString(),
+  minorVersion: minorVersion.toString(),
+});
 
 // Update version file
 versionData.version = newVersion;
+versionData.majorVersion = majorVersion;
+versionData.minorVersion = minorVersion;
 fs.writeFileSync(versionFilePath, JSON.stringify(versionData, null, 2) + '\n');
 
 console.log(`Version bumped: ${currentVersion} → ${newVersion}`);

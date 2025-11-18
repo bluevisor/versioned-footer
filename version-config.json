@@ -1,14 +1,16 @@
 {
   "format": "YY.MM.N",
-  "description": "Version format template. Supported placeholders: YYYY (full year), YY (2-digit year), MM (month), N (patch number)",
+  "description": "Version format template. Supported placeholders: YYYY (full year), YY (2-digit year), MM (zero-padded month), M (month without leading zero), DD (zero-padded day), D (day without leading zero), N (patch number), MAJORVERSION, MINORVERSION",
   "examples": {
-    "YY.MM.N": "25.11.1 (2-digit year, month, patch)",
-    "YYYY.MM.N": "2025.11.1 (full year, month, patch)",
+    "YY.MM.N": "25.11.1 (2-digit year, zero-padded month, patch)",
+    "YY.M.N": "25.11.1 (2-digit year, no padding month, patch)",
+    "YYYY.MM.DD.N": "2025.11.05.1 (full year, zero-padded month/day, patch)",
     "MM.YY.N": "11.25.1 (month, 2-digit year, patch)",
     "MM.YYYY.N": "11.2025.1 (month, full year, patch)",
     "N": "1 (patch only)",
     "YY.N": "25.1 (year, patch)",
     "MM.N": "11.1 (month, patch)",
-    "YYYY.N": "2025.1 (full year, patch)"
+    "YYYY.N": "2025.1 (full year, patch)",
+    "MAJORVERSION.MINORVERSION.YY.MM.N": "1.0.25.11.1 (major/minor from version.json + date components)"
   }
 }
